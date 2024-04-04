@@ -40,6 +40,11 @@ def create_app(test_config=None):
     app.add_url_rule('/', endpoint='index')
     return app
 
+if __name__ == '__main__':
+    app = create_app(True)
+    app.debug = True
+    app.run()
+# +E436J6OPTXMyrhCUznAHEVQTTVdnFYTHdO1UPsB
 # create_app is the application factory function. You’ll add to it later in the tutorial, but it already does a lot.
 #
 # app = Flask(__name__, instance_relative_config=True) creates the Flask instance.
