@@ -4,16 +4,19 @@ steps:
 
 
   - name: 'gcr.io/cloud-builders/docker'
-    args: [ 'build', '-t', 'gcr.io/deep-wave-419401/flaskproject-server:flask-proj', '.' ]
+    args: ['build', '-t', 'us-central1-docker.pkg.dev/${PROJECT_ID}/flaskproject1/flaskproject-server', '.']
       # Push the container image to Container Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: [ 'push', 'gcr.io/deep-wave-419401/flaskproject-server:latest' ]
+    args: [ 'push', 'gcr.io/${PROJECT_ID}/flaskproject1/flaskproject-server' ]
       # Deploy the container image to Cloud Run
-  - name: 'gcr.io/cloud-builders/gcloud'
-    args:
-      - 'run'
-      - 'deploy'
-      - 'web-service'
-      - '--image=gcr.io/deep-wave-419401/flaskproject-server:us-central1-docker.pkg.dev/deep-wave-419401/flask-proj'
-      - '--platform=managed'
-      - '--region=REGION'
+  # Entrypoint, timeout and environment variables
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    timeout: 240s
+    args: ['compute', 'instances',
+           'create-with-container', 'my-vm-name',
+           '--container-image',
+           'us-central1-docker.pkg.dev/${PROJECT_ID}/my-docker-repo/myimage']
+    env:
+      - 'CLOUDSDK_COMPUTE_REGION=us-central1'
+      - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
