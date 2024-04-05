@@ -1,6 +1,8 @@
 runtime: python312
 entrypoint: waitress-serve --call 'flaskr:create_app'
 env: flex
+skip_files:
+  - ^node_modules/.*$
 handlers:
   # This configures Google App Engine to serve the files in the app's static
   # directory.
