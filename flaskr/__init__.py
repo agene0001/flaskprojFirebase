@@ -2,6 +2,7 @@ import os
 
 from flask import Flask
 
+
 # to run flask --app flaskr run --debug
 def create_app(test_config=None):
     # create and configure the app
@@ -32,7 +33,6 @@ def create_app(test_config=None):
     from . import db
     db.init_app(app)
 
-
     from . import auth
     app.register_blueprint(auth.bp)
     from . import blog
@@ -40,10 +40,11 @@ def create_app(test_config=None):
     app.add_url_rule('/', endpoint='index')
     return app
 
+
 if __name__ == '__main__':
-    app = create_app(True)
-    app.debug = True
-    app.run()
+    app = create_app()
+    # app.debug = True
+    app.run(host='0.0.0.0', port=8080)
 # +E436J6OPTXMyrhCUznAHEVQTTVdnFYTHdO1UPsB
 # create_app is the application factory function. You’ll add to it later in the tutorial, but it already does a lot.
 #
