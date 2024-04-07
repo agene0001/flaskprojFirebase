@@ -44,7 +44,7 @@ def create_app(test_config=None):
 if __name__ == '__main__':
     app = create_app()
     # app.debug = True
-    app.run(host='0.0.0.0', port=8080)
+    app.run()
 # +E436J6OPTXMyrhCUznAHEVQTTVdnFYTHdO1UPsB
 # create_app is the application factory function. You’ll add to it later in the tutorial, but it already does a lot.
 #
