@@ -4,11 +4,14 @@ from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for, current_app, app
 )
 from werkzeug.security import check_password_hash, generate_password_hash
-
-from models import User
+import json
 from flaskr import db
+from flaskr import firebase
+
 # from flaskr import db.session
 bp = Blueprint('auth', __name__, url_prefix='/auth')
+auth = firebase.auth()
+
 
 # This creates a Blueprint named 'auth'. Like the application object,
 # the blueprint needs to know where it’s defined, so __name__ is passed
@@ -53,14 +56,12 @@ def register():
 
         if error is None:
             try:
-
-                user = User(username=username, password=generate_password_hash(password))
-                if db.session.query(User).filter_by(username=username).first() is not None:
-                    raise Exception('User already exists.')
-                db.session.add(user)
-                db.session.commit()
-            except: #occur if the username already exists
-                error = f"User {username} is already registered."
+                temp = auth.create_user_with_email_and_password(username, password)
+            except Exception as error1:
+                err = json.loads(str(error1).split(']', 1)[1])[
+                    'error']  # occur if the username already exists occur if the username already exists
+                error = err['message']  # occur if the username already exists occur if the username already exists
+            #     error = f"User {username} is already registered."
             else:
                 return redirect(url_for("auth.login"))
         #     url_for('hello', who='World')
@@ -76,35 +77,42 @@ def login():
         username = request.form['username']
         password = request.form['password']
         error = None
-        user = User.query.filter_by(username=username).first()
-
-        if user is None:
-            error = 'Incorrect username.'
-        elif not check_password_hash(user.password, password):
-            error = 'Incorrect password.'
+        user = None
+        try:
+            user = auth.sign_in_with_email_and_password(username, password)
+        except:
+            error = 'Incorrect username or password.'
         if error is None:
             session.clear()
-            session['user_id'] = user.id
+            session['user_id'] = user['localId']
+            session['email'] = user['email']
+            g.user = {
+                'email': user['email'],
+                'user_id': user['localId'],
+            }
             return redirect(url_for('index'))
 
         flash(error)
 
     return render_template('auth/login.html')
 
+
 @bp.before_app_request
 def load_logged_in_user():
     user_id = session.get('user_id')
-
     if user_id is None:
         g.user = None
+        session.clear()
     else:
-        g.user = db.session.query(User).filter(User.id==user_id).first()
+        g.user = {'email': session.get('email'),
+              'user_id': session.get('user_id')}
 
 
 @bp.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('index'))
+
 
 def login_required(view):
     @functools.wraps(view)

@@ -6,15 +6,17 @@ from flask import (
 from sqlalchemy.sql.functions import current_user
 from werkzeug.exceptions import abort
 
+
 from flaskr.auth import login_required
 
 bp = Blueprint('blog', __name__)
 
-from models import Blog, User
+from models import Blog
 
-from flaskr import db
+from flaskr import db, firebase
 
-
+auth = firebase.auth()
+@login_required
 @bp.route('/')
 def index():
     posts = db.session.query(Blog).all()
@@ -36,8 +38,7 @@ def create():
         if error is not None:
             flash(error)
         else:
-            users = db.session.query(User).filter(User.id == g.user.id).first()
-            db.session.add(Blog(title=title, body=body, author_id=g.user.id, created=time, author=users.username))
+            db.session.add(Blog(title=title, body=body, author_id=g.user['user_id'], created=time, author=g.user['email']))
             db.session.commit()
             return redirect(url_for('blog.index'))
 

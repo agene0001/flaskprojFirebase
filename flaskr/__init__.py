@@ -4,8 +4,20 @@ import sqlalchemy
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
-
+import pyrebase
 db = SQLAlchemy()
+config = {
+    'apiKey': "AIzaSyAHKCGCWqvPmLvWM5wU245dDjsq0wDTFp8",
+    'authDomain': "deep-wave-419401.firebaseapp.com",
+    'databaseURL': "https://deep-wave-419401-default-rtdb.firebaseio.com",
+    'projectId': "deep-wave-419401",
+    'storageBucket': "deep-wave-419401.appspot.com",
+    'messagingSenderId': "869601496898",
+    'appId': "1:869601496898:web:4b7d2f8f19075db95842db",
+    'measurementId': "G-R2BT6R25LE"
+}
+
+firebase = pyrebase.initialize_app(config)
 # to run flask --app flaskr run --debug
 def create_app(test_config=None):
     # create and configure the app
@@ -22,6 +34,7 @@ def create_app(test_config=None):
     # SECRET_KEY='dev',
     # DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
     # )
+
     app.config["SQLALCHEMY_DATABASE_URI"] =  'sqlite:///database.db'
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
     if test_config is None:
@@ -38,7 +51,7 @@ def create_app(test_config=None):
         pass
 
     # a simple page that says hello
-    from models import User, Blog
+    from models import Blog
 
     db.init_app(app)
     with app.app_context():
