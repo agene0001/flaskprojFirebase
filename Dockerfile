@@ -57,6 +57,7 @@ COPY . .
 # Expose the port that the application listens on.
 EXPOSE 8080
 
+RUN chown -R admin:admin /app
 # Run the application.
 CMD ["waitress-serve", "--call", "flaskr:create_app"]
 CMD ["flask", "--app", "flaskr", "init-db"]

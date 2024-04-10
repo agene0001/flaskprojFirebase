@@ -1,29 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<module type="PYTHON_MODULE" version="4">
-  <component name="FacetManager">
-    <facet type="google-appengine-python" name="Google App Engine (Python)">
-      <configuration>
-        <option name="rootFolder" value="" />
-        <option name="sdkFolder" value="" />
-      </configuration>
-    </facet>
-  </component>
-  <component name="Flask">
-    <option name="enabled" value="true" />
-  </component>
+<module version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
-      <excludeFolder url="file://$MODULE_DIR$/venv" />
+      <sourceFolder url="file://$MODULE_DIR$/flaskr" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/.venv" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.12" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.12 (.venv)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="Google App Engine SDK" level="project" />
   </component>
   <component name="TemplatesService">
-    <option name="TEMPLATE_CONFIGURATION" value="Jinja2" />
     <option name="TEMPLATE_FOLDERS">
       <list>
-        <option value="$MODULE_DIR$/../flaskProject\templates" />
+        <option value="$MODULE_DIR$/../flaskprojectSQLAlchemy/flaskr/templates" />
       </list>
     </option>
   </component>
