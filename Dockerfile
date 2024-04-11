@@ -41,13 +41,11 @@ RUN apt-get update && apt-get install -y \
 # Leverage a cache mount to /root/.cache/pip to speed up subsequent builds.
 # Leverage a bind mount to requirements.txt to avoid having to copy them into
 # into this layer.
-COPY /requirements.txt /app
-RUN apt-get update && apt-get install -y \
-    python3 \
-    python3-pip \
-    && python -m pip install -r requirements.txt && python -m pip install -r requirements.txt
-
-
+FROM python:3.7-slim
+WORKDIR /app
+RUN apt-get update && \
+    apt-get install -y python3 python3-pip && \
+    python3 -m pip install  -r requirements.txt
 # Switch to the non-privileged user to run the application.
 USER appuser
 
@@ -60,4 +58,4 @@ EXPOSE 8080
 RUN chown -R admin:admin /app
 # Run the application.
 CMD ["waitress-serve", "--call", "flaskr:create_app"]
-CMD ["flask", "--app", "flaskr", "init-db"]
+#CMD ["flask", "--app", "flaskr", "init-db"]

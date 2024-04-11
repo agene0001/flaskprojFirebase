@@ -6,20 +6,20 @@ from flask import (
 from sqlalchemy.sql.functions import current_user
 from werkzeug.exceptions import abort
 
-
 from flaskr.auth import login_required
 
 bp = Blueprint('blog', __name__)
 
-from models import Blog
+from flaskr import firebase
 
-from flaskr import db, firebase
+from flaskr import db
+from flaskr import FBauth
 
-auth = firebase.auth()
+
 @login_required
 @bp.route('/')
 def index():
-    posts = db.session.query(Blog).all()
+    posts = db.child('blog').get()
     return render_template('blog/index.html', posts=posts)
 
 
@@ -29,35 +29,34 @@ def create():
     if request.method == 'POST':
         title = request.form['title']
         body = request.form['body']
-        time = datetime.now()
+        time = datetime.now().isoformat()
         error = None
-
         if not title:
             error = 'Title is required.'
 
         if error is not None:
             flash(error)
         else:
-            db.session.add(Blog(title=title, body=body, author_id=g.user['user_id'], created=time, author=g.user['email']))
-            db.session.commit()
+            data = {'title': title, 'body': body, 'time': time, 'author_id': g.user['user_id'],
+                    'created': time, 'author': g.user['email']}
+            db.child('blog').push(data)
             return redirect(url_for('blog.index'))
 
     return render_template('blog/create.html')
 
 
 def get_post(id, check_author=True):
-    post = Blog.query.filter_by(id=id).first()
-
+    post = db.child('blog').child(id).get()
     if post is None:
         abort(404, f"Post id {id} doesn't exist.")
 
-    if check_author and post.author_id != g.user.id:
+    if check_author and post.val()['author_id'] != g.user['user_id']:
         abort(403)
 
     return post
 
 
-@bp.route('/<int:id>/update', methods=('GET', 'POST'))
+@bp.route('/<id>/update', methods=('GET', 'POST'))
 @login_required
 def update(id):
     post = get_post(id)
@@ -73,18 +72,17 @@ def update(id):
         if error is not None:
             flash(error)
         else:
-            post.title = title
+
+            db.child('blog').child(post.key()).update({'title':title,'body':body})
             post.body = body
-            db.commit()
             return redirect(url_for('blog.index'))
 
     return render_template('blog/update.html', post=post)
 
 
-@bp.route('/<int:id>/delete', methods=('POST',))
+@bp.route('/<id>/delete', methods=('POST',))
 @login_required
 def delete(id):
-    get_post(id)
-    db.session.query(Blog).filter_by(id=id).delete()
-    db.session.commit()
+    post = get_post(id)
+    db.child('blog').child(post.key()).delete()
     return redirect(url_for('blog.index'))

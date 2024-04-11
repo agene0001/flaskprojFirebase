@@ -1,23 +1,15 @@
 import os
 
-import sqlalchemy
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import DeclarativeBase
 import pyrebase
-db = SQLAlchemy()
-config = {
-    'apiKey': "AIzaSyAHKCGCWqvPmLvWM5wU245dDjsq0wDTFp8",
-    'authDomain': "deep-wave-419401.firebaseapp.com",
-    'databaseURL': "https://deep-wave-419401-default-rtdb.firebaseio.com",
-    'projectId': "deep-wave-419401",
-    'storageBucket': "deep-wave-419401.appspot.com",
-    'messagingSenderId': "869601496898",
-    'appId': "1:869601496898:web:4b7d2f8f19075db95842db",
-    'measurementId': "G-R2BT6R25LE"
-}
+import json
 
+with open('./instance/firebaseConfig.json') as f:
+    config = json.load(f)
+    print(config)
 firebase = pyrebase.initialize_app(config)
+db = firebase.database()
+FBauth = firebase.auth()
 # to run flask --app flaskr run --debug
 def create_app(test_config=None):
     # create and configure the app
@@ -35,8 +27,8 @@ def create_app(test_config=None):
     # DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
     # )
 
-    app.config["SQLALCHEMY_DATABASE_URI"] =  'sqlite:///database.db'
-    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
+    # app.config["SQLALCHEMY_DATABASE_URI"] =  'sqlite:///database.db'
+    # app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
     if test_config is None:
         # load the instance config, if it exists, when not testing
         app.config.from_pyfile('config.py', silent=True)
@@ -51,13 +43,13 @@ def create_app(test_config=None):
         pass
 
     # a simple page that says hello
-    from models import Blog
+    # from models import Blog
 
-    db.init_app(app)
-    with app.app_context():
-        db.create_all()
-    from . import auth
-    from . import blog
+    # db.init_app(app)
+    # with app.app_context():
+    #     db.create_all()
+    from flaskr import auth
+    from flaskr import blog
     app.register_blueprint(auth.bp)
     app.register_blueprint(blog.bp)
     app.add_url_rule('/', endpoint='index')

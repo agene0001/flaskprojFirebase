@@ -5,12 +5,11 @@ from flask import (
 )
 from werkzeug.security import check_password_hash, generate_password_hash
 import json
-from flaskr import db
 from flaskr import firebase
+from flaskr import FBauth
 
 # from flaskr import db.session
 bp = Blueprint('auth', __name__, url_prefix='/auth')
-auth = firebase.auth()
 
 
 # This creates a Blueprint named 'auth'. Like the application object,
@@ -56,7 +55,7 @@ def register():
 
         if error is None:
             try:
-                temp = auth.create_user_with_email_and_password(username, password)
+                temp = FBauth.create_user_with_email_and_password(username, password)
             except Exception as error1:
                 err = json.loads(str(error1).split(']', 1)[1])[
                     'error']  # occur if the username already exists occur if the username already exists
@@ -79,7 +78,7 @@ def login():
         error = None
         user = None
         try:
-            user = auth.sign_in_with_email_and_password(username, password)
+            user = FBauth.sign_in_with_email_and_password(username, password)
         except:
             error = 'Incorrect username or password.'
         if error is None:
