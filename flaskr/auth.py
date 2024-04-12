@@ -3,10 +3,10 @@ import functools
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for, current_app, app
 )
-from werkzeug.security import check_password_hash, generate_password_hash
 import json
-from flaskr import firebase
-from flaskr import FBauth
+from flaskr import firestore
+from firebase_admin import auth
+
 
 # from flaskr import db.session
 bp = Blueprint('auth', __name__, url_prefix='/auth')
@@ -55,11 +55,10 @@ def register():
 
         if error is None:
             try:
-                temp = FBauth.create_user_with_email_and_password(username, password)
+                temp = auth.create_user(email=username, password=password)
             except Exception as error1:
-                err = json.loads(str(error1).split(']', 1)[1])[
-                    'error']  # occur if the username already exists occur if the username already exists
-                error = err['message']  # occur if the username already exists occur if the username already exists
+                  # occur if the username already exists occur if the username already exists
+                error = error1 # occur if the username already exists occur if the username already exists
             #     error = f"User {username} is already registered."
             else:
                 return redirect(url_for("auth.login"))
@@ -78,16 +77,19 @@ def login():
         error = None
         user = None
         try:
-            user = FBauth.sign_in_with_email_and_password(username, password)
-        except:
-            error = 'Incorrect username or password.'
+            user = auth.get_user_by_email(email=username)
+            user = auth.get_user(user.uid)
+            if user is None:
+                raise Exception('Invalid username or password.')
+        except Exception as error1:
+            error = error1
         if error is None:
             session.clear()
-            session['user_id'] = user['localId']
-            session['email'] = user['email']
+            session['user_id'] = user.uid
+            session['email'] = user.email
             g.user = {
-                'email': user['email'],
-                'user_id': user['localId'],
+                'email': user.email,
+                'user_id': user.uid
             }
             return redirect(url_for('index'))
 

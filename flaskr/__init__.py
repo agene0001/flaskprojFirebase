@@ -1,15 +1,16 @@
 import os
 
 from flask import Flask
-import pyrebase
+from firebase_admin import credentials, firestore, initialize_app
 import json
-
-with open('./instance/firebaseConfig.json') as f:
-    config = json.load(f)
-    print(config)
-firebase = pyrebase.initialize_app(config)
-db = firebase.database()
-FBauth = firebase.auth()
+# with open('./instance/firebaseConfig.json') as f:
+#     config = json.load(f)
+# initialize_app(config)
+# Initialize Firestore DB
+cred = credentials.Certificate('./instance/key.json')
+default_app = initialize_app(cred)
+db = firestore.client()
+todo_ref = db.collection('todos')
 # to run flask --app flaskr run --debug
 def create_app(test_config=None):
     # create and configure the app
