@@ -1,16 +1,19 @@
 import functools
+import smtplib
 
+import requests
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for, current_app, app
 )
 import json
-from flaskr import firestore
+from flaskr import firestore, mail
 from firebase_admin import auth
-
+from flask_mail import Mail, Message
+from mailjet_rest import Client
+import os
 
 # from flaskr import db.session
 bp = Blueprint('auth', __name__, url_prefix='/auth')
-
 
 # This creates a Blueprint named 'auth'. Like the application object,
 # the blueprint needs to know where it’s defined, so __name__ is passed
@@ -57,8 +60,8 @@ def register():
             try:
                 temp = auth.create_user(email=username, password=password)
             except Exception as error1:
-                  # occur if the username already exists occur if the username already exists
-                error = error1 # occur if the username already exists occur if the username already exists
+                # occur if the username already exists occur if the username already exists
+                error = error1  # occur if the username already exists occur if the username already exists
             #     error = f"User {username} is already registered."
             else:
                 return redirect(url_for("auth.login"))
@@ -98,6 +101,34 @@ def login():
     return render_template('auth/login.html')
 
 
+@bp.route('/reset', methods=('GET', 'POST'))
+def reset():
+    if request.method == 'GET':
+        return render_template('auth/reset.html')
+    elif request.method == 'POST':
+        email = request.form['email']
+        error1 = None
+        try:
+            link = auth.generate_password_reset_link(email)
+            send_simple_message()
+        except Exception as error:
+            error1 = str(error)
+            flash(error1)
+        else:
+            flash('Check your email for the instructions to reset your password.')
+        if error1 is None:
+            flash('Successfully reset your password.')
+            return redirect(url_for('auth.login'))
+        else:
+            return render_template('auth/reset.html')
+
+
+def send_simple_message():
+    msg = Message('Subject of Email',sender='noreply@deep-wave-419401.firebaseapp.com',body='This is the body of the email', recipients=['agene001@umn.edu'])
+    mail.send(msg)
+    return 'Email sent!'
+
+
 @bp.before_app_request
 def load_logged_in_user():
     user_id = session.get('user_id')
@@ -106,7 +137,7 @@ def load_logged_in_user():
         session.clear()
     else:
         g.user = {'email': session.get('email'),
-              'user_id': session.get('user_id')}
+                  'user_id': session.get('user_id')}
 
 
 @bp.route('/logout')

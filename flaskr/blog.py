@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, url_for
+    Blueprint, flash, g, redirect, render_template, request, url_for,session
 )
 from werkzeug.exceptions import abort
 from google.api_core.exceptions import Aborted
@@ -16,9 +16,13 @@ from flaskr import db
 @login_required
 @bp.route('/')
 def index():
-    posts = db.collection('blog').get()
-    posts = list(map(lambda post: post.to_dict()|{'id':post.id}, posts))
-    return render_template('blog/index.html', posts=posts)
+    if session.get('posts') is None:
+        posts = db.collection('blog').get()
+        posts = list(map(lambda post: post.to_dict()|{'id':post.id}, posts))
+        session['posts'] = posts
+    print(session['posts'])
+    return render_template('blog/index.html', posts=session['posts'])
+
 
 
 @bp.route('/create', methods=('GET', 'POST'))
@@ -38,9 +42,10 @@ def create():
 
             for retry in range(5):
                 try:
-                        data = {'title': title, 'body': body, 'time': time, 'author_id': g.user['user_id'],
+                        data = {'title': title, 'body': body, 'author_id': g.user['user_id'],
                                 'created': time, 'author': g.user['email']}
                         db.collection('blog').document().set(data)
+                        session['posts'] = session['posts'].append(data)
                 except Aborted:
                     sleep(2**retry)
                 finally:
@@ -50,8 +55,9 @@ def create():
 
 
 def get_post(id, check_author=True):
-    post = db.collection('blog').document(id).get()
-    post = post.to_dict()|{'id':post.id}
+    posts = session['posts']
+    output_list = [dict_ for dict_ in posts if dict_.get('id') == id]
+    post = output_list[0]
     if post is None:
         abort(404, f"Post id {id} doesn't exist.")
 
@@ -79,6 +85,10 @@ def update(id):
         else:
 
             db.child('blog').child(post.key()).update({'title':title,'body':body})
+            output_list = [dict_ for dict_ in session['posts'] if dict_.get('id') == id]
+            for post in output_list:
+                post['title'] = title
+                post['body'] = body
             post.body = body
             return redirect(url_for('blog.index'))
 
@@ -90,4 +100,5 @@ def update(id):
 def delete(id):
     post = get_post(id)
     db.collection('blog').document(post['id']).delete()
+    session['posts'] = [post for post in session['posts'] if post['id'] != id]
     return redirect(url_for('blog.index'))

@@ -1,6 +1,7 @@
 import os
 
 from flask import Flask
+from flask_mail import Mail,Message
 from firebase_admin import credentials, firestore, initialize_app
 import json
 # with open('./instance/firebaseConfig.json') as f:
@@ -11,6 +12,7 @@ cred = credentials.Certificate('./instance/key.json')
 default_app = initialize_app(cred)
 db = firestore.client()
 todo_ref = db.collection('todos')
+mail = Mail()
 # to run flask --app flaskr run --debug
 def create_app(test_config=None):
     # create and configure the app
@@ -49,6 +51,8 @@ def create_app(test_config=None):
     # db.init_app(app)
     # with app.app_context():
     #     db.create_all()
+
+    mail.init_app(app)
     from flaskr import auth
     from flaskr import blog
     app.register_blueprint(auth.bp)
